@@ -3,10 +3,14 @@ package com.geek.week11;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.listener.PatternTopic;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -16,6 +20,8 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  */
 @Configuration
 public class LettuceConfig {
+
+    public static final String SUBSCRIBE_TOPIC = "order_async";
 
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
@@ -37,6 +43,20 @@ public class LettuceConfig {
         template.setHashValueSerializer(jackson2JsonRedisSerializer);
 
         return template;
+    }
+
+    @Bean
+    public RedisMessageListenerContainer messageListenerContainer(RedisConnectionFactory connectionFactory,
+                                                                  @Qualifier("orderMessageListenerAdapter") MessageListenerAdapter listenerAdapter) {
+        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+        container.setConnectionFactory(connectionFactory);
+        container.addMessageListener(listenerAdapter, new PatternTopic(SUBSCRIBE_TOPIC));
+        return container;
+    }
+
+    @Bean("orderMessageListenerAdapter")
+    public MessageListenerAdapter listenerAdapter(OrderAsyncHandler orderAsyncHandler) {
+        return new MessageListenerAdapter(orderAsyncHandler, "createOrderAsync");
     }
 
     /**
