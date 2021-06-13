@@ -17,7 +17,7 @@
 - com.geek.week11.OrderController为业务测试入口
 - 消息发布端为com.geek.week11.OrderService，实现同步减库存和异步发送下单消息
 - 消息消费端配置在com.geek.week11.LettuceConfig中，配置了RedisMessageListenerContainer、MessageListenerAdapter
-- 消息消费类是com.geek.week11.OrderAsyncHandler，这里为了演示，就不入库了
+- 消息消费类是com.geek.week11.OrderAsyncHandler，这里为了演示，就不入库了  
 测试样例：  
 请求url：http://localhost:8080/order/create  
 请求方式：post  
